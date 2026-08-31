@@ -1,0 +1,70 @@
+[
+  {
+    "timestamp": "2026-08-31T07:45:12Z",
+    "event_type": "user_login",
+    "source": "windows_security",
+    "host": "LAPTOP-07",
+    "user": "pradeep",
+    "action": "login",
+    "action_result": "SUCCESS",
+    "logon_type": "Interactive",
+    "logon_id": "0x3E7",
+    "authentication_package": "NTLM"
+  },
+  {
+    "timestamp": "2026-08-31T07:47:30Z",
+    "event_type": "process_start",
+    "source": "sysmon",
+    "host": "LAPTOP-07",
+    "user": "pradeep",
+    "process": "WINWORD.EXE",
+    "parent_process": "explorer.exe",
+    "process_id": 3120,
+    "parent_process_id": 1904,
+    "action": "start",
+    "command_line": "\"C:\\Program Files\\Microsoft Office\\root\\Office16\\WINWORD.EXE\" /n \"report_q3.docx\""
+  },
+  {
+    "timestamp": "2026-08-31T07:52:44Z",
+    "event_type": "process_start",
+    "source": "sysmon",
+    "host": "LAPTOP-07",
+    "user": "pradeep",
+    "process": "powershell.exe",
+    "parent_process": "WINWORD.EXE",
+    "process_id": 4216,
+    "parent_process_id": 3120,
+    "action": "start",
+    "command_line": "powershell.exe -nop -w hidden -EncodedCommand <base64_redacted>",
+    "integrity_level": "High",
+    "terminal_session_id": 1,
+    "original_file_name": "PowerShell.EXE"
+  },
+  {
+    "timestamp": "2026-08-31T07:52:51Z",
+    "event_type": "network_connection",
+    "source": "sysmon",
+    "host": "LAPTOP-07",
+    "user": "pradeep",
+    "source_ip": "192.168.1.10",
+    "destination_ip": "198.51.100.42",
+    "source_port": 52341,
+    "destination_port": 443,
+    "action": "connect",
+    "protocol": "TCP",
+    "initiated": true
+  },
+  {
+    "timestamp": "2026-08-31T07:53:05Z",
+    "event_type": "file_create",
+    "source": "sysmon",
+    "host": "LAPTOP-07",
+    "user": "pradeep",
+    "process": "powershell.exe",
+    "process_id": 4216,
+    "file_path": "C:\\Users\\pradeep\\AppData\\Local\\Temp\\stage2.ps1",
+    "action": "create",
+    "creation_utc_time": "2026-08-31T07:53:05.1234567Z",
+    "target_filename": "C:\\Users\\pradeep\\AppData\\Local\\Temp\\stage2.ps1"
+  }
+]
