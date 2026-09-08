@@ -1,61 +1,84 @@
 """
-Correlation service for Phase 4A.
+Correlation service — Phase 4B.
 
 PUBLIC API
 ----------
 correlate_process_parent_child(session, investigation_id) -> CorrelationResult
 
     Discovers SPAWNED relationships between NormalizedEvents in one
-    investigation by matching process_id (parent) to parent_process_id (child).
+    investigation by matching host + process_id (parent) to
+    host + parent_process_id (child).
 
     Does NOT commit the session.  The caller is responsible for commit/rollback.
 
-RULE: PROCESS_PARENT_CHILD
---------------------------
-For two NormalizedEvents E1 and E2 belonging to the same investigation:
+RULE: PROCESS_PARENT_CHILD (Phase 4B — host-aware)
+---------------------------------------------------
+For two NormalizedEvents parent and child belonging to the same investigation:
 
-    MATCH(E1, E2) iff:
-        E1.process_id IS NOT NULL
-        AND E2.parent_process_id IS NOT NULL
-        AND E1.process_id == E2.parent_process_id   # exact string equality
-        AND E1.id != E2.id                          # no self-reference
+    MATCH(parent, child) iff:
+        parent.investigation_id == child.investigation_id
+        AND parent.process_id IS NOT NULL
+        AND child.parent_process_id IS NOT NULL
+        AND parent.process_id == child.parent_process_id   # exact string equality
+        AND parent.id != child.id                          # no self-reference
+        AND parent.source_host IS NOT NULL                 # host required
+        AND child.source_host IS NOT NULL                  # host required
+        AND parent.source_host == child.source_host        # exact string equality
 
 When matched, one Relationship is created:
     relationship_type = "SPAWNED"
     creation_method   = "PROCESS_PARENT_CHILD"
     status            = "SYSTEM_PROPOSED"
-    source_event_id   = E1.id   (parent event)
-    target_event_id   = E2.id   (child event)
+    source_event_id   = parent.id
+    target_event_id   = child.id
+    source_entity_id  = None
+    target_entity_id  = None
 
 And two RelationshipSupport rows are created:
-    E1  ->  support_reason = "PARENT_PID_MATCH"
-    E2  ->  support_reason = "CHILD_PID_MATCH"
+    parent  ->  support_reason = "PARENT_PID_MATCH"
+    child   ->  support_reason = "CHILD_PID_MATCH"
 
 IMPORTANT SEMANTIC CONSTRAINTS
 -------------------------------
 - Both events MUST belong to the same investigation.  Candidate pairs are
   produced by a scoped self-join; cross-investigation correlation is
   impossible by construction.
-- The self-reference guard (E1.id != E2.id) prevents a single event from
-  being its own parent.
+- The self-reference guard (parent.id != child.id) prevents a single event
+  from being its own parent.
 - Matching is on process_id and parent_process_id columns only.
   process_name / parent_process_name are never used for matching.
 - No temporal window is applied.  The rule is purely structural.
 - No event_type filter is applied.  Any NormalizedEvent with the
-  appropriate PID fields is a candidate.
+  appropriate PID and host fields is a candidate.
+
+HOST MATCHING
+--------------
+- Both events must have a non-null source_host.  Events without a host value
+  are excluded; there is no fallback to PID-only matching.
+- host comparison is exact string equality (VARCHAR =) on the value already
+  stored in NormalizedEvent.source_host.
+- No additional host canonicalization is performed in the correlation layer.
+  Phase 3B already strips whitespace and lowercases host values via
+  canonicalize_host().  The correlation layer trusts those stored values.
+- FQDN vs short hostname ("laptop-07" vs "laptop-07.corp.example.com") will
+  correctly NOT match because normalization does not resolve FQDN differences.
+  This is intentional conservative behavior.
+
+PID MATCHING
+------------
 - PID comparison is exact string equality at the database level (VARCHAR =).
-  PIDs are stored as strings by Phase 3B (str(raw_value)).  The rule does
-  NOT coerce, normalize, or parse PID representations.  No hex conversion,
-  no leading-zero stripping, no integer casting.  "4812" and "04812" are
-  distinct values and will correctly not match.  "4812" and "0x12CC" are
-  distinct values and will correctly not match.
+  PIDs are stored as strings by Phase 3B (str(raw_value)).
+- No coercion, normalization, or parsing of PID representations.
+  "4812" and "04812" are distinct values and will correctly not match.
+  "4812" and "0x12CC" are distinct values and will correctly not match.
 
 MULTIPLE-PARENT EDGE CASE
 --------------------------
-If two events E1 and E2 share the same process_id value and E3 has a
-matching parent_process_id, the rule will create two relationships:
-    E1 -> E3 (SPAWNED)
-    E2 -> E3 (SPAWNED)
+If two events on the same host share the same process_id value and a third
+event on the same host has a matching parent_process_id, the rule will
+create two relationships:
+    event_1 -> event_3 (SPAWNED)
+    event_2 -> event_3 (SPAWNED)
 This is correct deterministic behaviour: the rule cannot arbitrate which
 event is "the real" parent without additional context.
 
@@ -69,8 +92,6 @@ Before creating a Relationship, the service queries for an existing row
 matching (source_event_id, target_event_id, relationship_type,
 creation_method).  If found, the pair is skipped and counted as
 relationships_skipped_duplicate.
-
-This matches the Phase 3B entity-reuse pattern (_get_or_create_entity).
 
 IMPORTANT: this application-level check prevents duplicate creation during
 repeated sequential execution.  It does NOT provide a database-level
@@ -90,8 +111,7 @@ QUERY DESIGN
 ------------
 Candidate pairs are produced by a single SQLAlchemy self-join on
 NormalizedEvent.  All predicate conditions are evaluated at the database
-level.  The result set contains only valid (parent, child) pairs for the
-target investigation.
+level using the existing ix_normalized_event_source_host index.
 """
 
 from __future__ import annotations
@@ -149,18 +169,20 @@ def _build_explanation(
     parent: NormalizedEvent,
     child: NormalizedEvent,
     matched_pid: str,
+    matched_host: str,
 ) -> str:
     """
     Return a deterministic, auditable, human-readable explanation string.
 
-    The explanation embeds both event UUIDs and the matched PID value so
-    that it can be verified independently without querying the database.
+    The explanation embeds both event UUIDs, the matched PID value, and the
+    matched host value so that it can be verified independently without
+    querying the database.
     """
     return (
-        f'Event {parent.id} (process_id="{parent.process_id}") is the declared '
-        f"parent of event {child.id} "
-        f'(parent_process_id="{child.parent_process_id}"). '
-        f'PID match: "{matched_pid}".'
+        f'Event {parent.id} (host="{matched_host}", process_id="{parent.process_id}") '
+        f"is the declared parent of event {child.id} "
+        f'(host="{child.source_host}", parent_process_id="{child.parent_process_id}"). '
+        f'PID match: "{matched_pid}". Host match: "{matched_host}".'
     )
 
 
@@ -227,14 +249,17 @@ async def correlate_process_parent_child(
 
     # ── 1. Build self-join to find all matching (parent, child) pairs ─────────
     #
-    # The JOIN enforces all predicate conditions at the database level:
-    #   - same investigation
-    #   - parent.process_id IS NOT NULL  (implied by equality; made explicit)
-    #   - child.parent_process_id IS NOT NULL  (implied by equality; made explicit)
-    #   - parent.process_id == child.parent_process_id  (exact VARCHAR equality)
-    #   - parent.id != child.id  (no self-reference)
+    # All predicate conditions are evaluated at the database level:
+    #   - same investigation                (JOIN ON)
+    #   - parent.process_id IS NOT NULL     (WHERE)
+    #   - child.parent_process_id IS NOT NULL (WHERE)
+    #   - parent.process_id == child.parent_process_id  (JOIN ON, exact VARCHAR =)
+    #   - parent.id != child.id             (JOIN ON, no self-reference)
+    #   - parent.source_host IS NOT NULL    (WHERE, host required)
+    #   - child.source_host IS NOT NULL     (WHERE, host required)
+    #   - parent.source_host == child.source_host  (JOIN ON, exact VARCHAR =)
     #
-    # PID comparison is exact string equality (VARCHAR =).  No coercion.
+    # NULL source_host events are excluded: no fallback to PID-only matching.
     parent_alias = aliased(NormalizedEvent)
     child_alias = aliased(NormalizedEvent)
 
@@ -245,6 +270,7 @@ async def correlate_process_parent_child(
             and_(
                 child_alias.investigation_id == parent_alias.investigation_id,
                 child_alias.parent_process_id == parent_alias.process_id,
+                child_alias.source_host == parent_alias.source_host,
                 child_alias.id != parent_alias.id,
             ),
         )
@@ -252,6 +278,8 @@ async def correlate_process_parent_child(
             parent_alias.investigation_id == investigation_id,
             parent_alias.process_id.is_not(None),
             child_alias.parent_process_id.is_not(None),
+            parent_alias.source_host.is_not(None),
+            child_alias.source_host.is_not(None),
         )
     )
 
@@ -265,7 +293,8 @@ async def correlate_process_parent_child(
 
     # ── 2. Process each matched pair ──────────────────────────────────────────
     for parent, child in rows:
-        matched_pid = parent.process_id  # non-None; enforced by JOIN predicate
+        matched_pid = parent.process_id    # non-None; enforced by JOIN predicate
+        matched_host = parent.source_host  # non-None; enforced by JOIN predicate
 
         # ── 2a. Idempotency check ─────────────────────────────────────────────
         existing = await _find_existing_relationship(session, parent.id, child.id)
@@ -279,7 +308,7 @@ async def correlate_process_parent_child(
             continue
 
         # ── 2b. Create Relationship ───────────────────────────────────────────
-        explanation = _build_explanation(parent, child, matched_pid)
+        explanation = _build_explanation(parent, child, matched_pid, matched_host)
         rel = Relationship(
             investigation_id=investigation_id,
             relationship_type=_RELATIONSHIP_TYPE,
@@ -309,11 +338,12 @@ async def correlate_process_parent_child(
 
         created += 1
         logger.info(
-            "Relationship created: id=%s parent_event=%s child_event=%s pid=%s",
+            "Relationship created: id=%s parent_event=%s child_event=%s pid=%s host=%s",
             rel.id,
             parent.id,
             child.id,
             matched_pid,
+            matched_host,
         )
 
     logger.info(

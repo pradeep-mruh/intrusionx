@@ -1,7 +1,7 @@
 """
-Phase 4A — Correlation Engine: process parent/child rule test suite.
+Phase 4B — Correlation Engine: process parent/child rule test suite.
 
-Tests are organized into 7 concern groups:
+Tests are organized into 8 concern groups:
 
  1. Positive match (happy path)
  2. PID mismatch
@@ -10,6 +10,7 @@ Tests are organized into 7 concern groups:
  5. Self-reference protection
  6. Idempotency
  7. Boundary / negative cases
+ 8. Host-aware matching (Phase 4B)
 
 SESSION STRATEGY
 ----------------
@@ -95,11 +96,14 @@ async def session(engine, db_tables):
 
 _NOW = datetime(2026, 9, 1, 12, 0, 0, tzinfo=timezone.utc)
 
+# Default host used across tests that require host context.
+_HOST_A = "laptop-07"
+
 
 def _make_investigation() -> Investigation:
     return Investigation(
         id=uuid.uuid4(),
-        title="Phase 4A Correlation Test",
+        title="Phase 4A/4B Correlation Test",
         status="OPEN",
         created_by=uuid.uuid4(),
     )
@@ -127,8 +131,19 @@ def _make_event(
     *,
     process_id: str | None = None,
     parent_process_id: str | None = None,
+    source_host: str | None = _HOST_A,
     event_type: str = "PROCESS_START",
 ) -> NormalizedEvent:
+    """
+    Build a NormalizedEvent fixture.
+
+    ``source_host`` defaults to _HOST_A ("laptop-07") so that all
+    positive-match tests satisfy the Phase 4B host requirement without
+    requiring explicit host arguments on every call.
+
+    Pass ``source_host=None`` explicitly to create a host-less event for
+    negative tests.
+    """
     return NormalizedEvent(
         id=uuid.uuid4(),
         investigation_id=investigation_id,
@@ -138,6 +153,7 @@ def _make_event(
         event_category="PROCESS",
         process_id=process_id,
         parent_process_id=parent_process_id,
+        source_host=source_host,
     )
 
 
@@ -162,11 +178,11 @@ async def _setup(session: AsyncSession) -> tuple[Investigation, Evidence]:
 class TestPositiveMatch:
     @pytest.mark.anyio
     async def test_match_creates_relationship(self, session: AsyncSession):
-        """A matching PID pair produces exactly one Relationship row."""
+        """A matching host+PID pair produces exactly one Relationship row."""
         inv, evd = await _setup(session)
 
-        parent = _make_event(inv.id, evd.id, process_id="4812")
-        child = _make_event(inv.id, evd.id, parent_process_id="4812")
+        parent = _make_event(inv.id, evd.id, process_id="4812", source_host="laptop-07")
+        child = _make_event(inv.id, evd.id, parent_process_id="4812", source_host="laptop-07")
         session.add_all([parent, child])
         await session.flush()
 
@@ -197,8 +213,8 @@ class TestPositiveMatch:
         """A matching pair produces two RelationshipSupport rows with correct reasons."""
         inv, evd = await _setup(session)
 
-        parent = _make_event(inv.id, evd.id, process_id="4812")
-        child = _make_event(inv.id, evd.id, parent_process_id="4812")
+        parent = _make_event(inv.id, evd.id, process_id="4812", source_host="laptop-07")
+        child = _make_event(inv.id, evd.id, parent_process_id="4812", source_host="laptop-07")
         session.add_all([parent, child])
         await session.flush()
 
@@ -230,8 +246,8 @@ class TestPositiveMatch:
         """Explanation string must reference the matched PID value."""
         inv, evd = await _setup(session)
 
-        parent = _make_event(inv.id, evd.id, process_id="9999")
-        child = _make_event(inv.id, evd.id, parent_process_id="9999")
+        parent = _make_event(inv.id, evd.id, process_id="9999", source_host="laptop-07")
+        child = _make_event(inv.id, evd.id, parent_process_id="9999", source_host="laptop-07")
         session.add_all([parent, child])
         await session.flush()
 
@@ -254,8 +270,8 @@ class TestPositiveMatch:
         """CorrelationResult reports one created and zero skipped."""
         inv, evd = await _setup(session)
 
-        parent = _make_event(inv.id, evd.id, process_id="1234")
-        child = _make_event(inv.id, evd.id, parent_process_id="1234")
+        parent = _make_event(inv.id, evd.id, process_id="1234", source_host="laptop-07")
+        child = _make_event(inv.id, evd.id, parent_process_id="1234", source_host="laptop-07")
         session.add_all([parent, child])
         await session.flush()
 
@@ -270,15 +286,15 @@ class TestPositiveMatch:
 
     @pytest.mark.anyio
     async def test_multiple_independent_pairs_all_matched(self, session: AsyncSession):
-        """Three events forming two independent parent/child pairs produce two relationships."""
+        """Two independent parent/child pairs on the same host produce two relationships."""
         inv, evd = await _setup(session)
 
         # Pair 1: PID 100
-        p1 = _make_event(inv.id, evd.id, process_id="100")
-        c1 = _make_event(inv.id, evd.id, parent_process_id="100")
+        p1 = _make_event(inv.id, evd.id, process_id="100", source_host="laptop-07")
+        c1 = _make_event(inv.id, evd.id, parent_process_id="100", source_host="laptop-07")
         # Pair 2: PID 200
-        p2 = _make_event(inv.id, evd.id, process_id="200")
-        c2 = _make_event(inv.id, evd.id, parent_process_id="200")
+        p2 = _make_event(inv.id, evd.id, process_id="200", source_host="laptop-07")
+        c2 = _make_event(inv.id, evd.id, parent_process_id="200", source_host="laptop-07")
         session.add_all([p1, c1, p2, c2])
         await session.flush()
 
@@ -305,11 +321,15 @@ class TestPositiveMatch:
 class TestPIDMismatch:
     @pytest.mark.anyio
     async def test_pid_mismatch_no_relationship(self, session: AsyncSession):
-        """Events with non-matching PIDs produce no relationship."""
+        """
+        Events on the same host with non-matching PIDs produce no relationship.
+
+        Both events have source_host set so the test isolates PID mismatch.
+        """
         inv, evd = await _setup(session)
 
-        e1 = _make_event(inv.id, evd.id, process_id="100")
-        e2 = _make_event(inv.id, evd.id, parent_process_id="999")
+        e1 = _make_event(inv.id, evd.id, process_id="100", source_host="laptop-07")
+        e2 = _make_event(inv.id, evd.id, parent_process_id="999", source_host="laptop-07")
         session.add_all([e1, e2])
         await session.flush()
 
@@ -334,11 +354,15 @@ class TestPIDMismatch:
 class TestMissingPID:
     @pytest.mark.anyio
     async def test_missing_process_id_no_match(self, session: AsyncSession):
-        """Event without process_id cannot be a parent candidate."""
+        """
+        Event without process_id cannot be a parent candidate.
+
+        Both events have source_host so the test isolates the missing PID.
+        """
         inv, evd = await _setup(session)
 
-        e1 = _make_event(inv.id, evd.id, process_id=None)
-        e2 = _make_event(inv.id, evd.id, parent_process_id="100")
+        e1 = _make_event(inv.id, evd.id, process_id=None, source_host="laptop-07")
+        e2 = _make_event(inv.id, evd.id, parent_process_id="100", source_host="laptop-07")
         session.add_all([e1, e2])
         await session.flush()
 
@@ -349,11 +373,15 @@ class TestMissingPID:
 
     @pytest.mark.anyio
     async def test_missing_parent_process_id_no_match(self, session: AsyncSession):
-        """Event without parent_process_id cannot be a child candidate."""
+        """
+        Event without parent_process_id cannot be a child candidate.
+
+        Both events have source_host so the test isolates the missing PID.
+        """
         inv, evd = await _setup(session)
 
-        e1 = _make_event(inv.id, evd.id, process_id="100")
-        e2 = _make_event(inv.id, evd.id, parent_process_id=None)
+        e1 = _make_event(inv.id, evd.id, process_id="100", source_host="laptop-07")
+        e2 = _make_event(inv.id, evd.id, parent_process_id=None, source_host="laptop-07")
         session.add_all([e1, e2])
         await session.flush()
 
@@ -367,8 +395,10 @@ class TestMissingPID:
         """Events with no process ID fields produce no relationships."""
         inv, evd = await _setup(session)
 
-        e1 = _make_event(inv.id, evd.id, process_id=None, parent_process_id=None)
-        e2 = _make_event(inv.id, evd.id, process_id=None, parent_process_id=None)
+        e1 = _make_event(inv.id, evd.id, process_id=None, parent_process_id=None,
+                         source_host="laptop-07")
+        e2 = _make_event(inv.id, evd.id, process_id=None, parent_process_id=None,
+                         source_host="laptop-07")
         session.add_all([e1, e2])
         await session.flush()
 
@@ -387,8 +417,8 @@ class TestCrossInvestigationIsolation:
     @pytest.mark.anyio
     async def test_cross_investigation_no_relationship(self, session: AsyncSession):
         """
-        Two events with matching PIDs in different investigations produce no
-        relationship when the rule is run for investigation A.
+        Two events with matching host+PIDs in different investigations produce no
+        relationship when the rule is run for either investigation.
         """
         # Investigation A
         inv_a = _make_investigation()
@@ -406,9 +436,11 @@ class TestCrossInvestigationIsolation:
         session.add(evd_b)
         await session.flush()
 
-        # Parent in A, child in B — same PID string "555"
-        parent_a = _make_event(inv_a.id, evd_a.id, process_id="555")
-        child_b = _make_event(inv_b.id, evd_b.id, parent_process_id="555")
+        # Parent in A, child in B — same host and PID string "555"
+        parent_a = _make_event(inv_a.id, evd_a.id, process_id="555",
+                               source_host="laptop-07")
+        child_b = _make_event(inv_b.id, evd_b.id, parent_process_id="555",
+                              source_host="laptop-07")
         session.add_all([parent_a, child_b])
         await session.flush()
 
@@ -437,13 +469,14 @@ class TestSelfReferenceProtection:
         a self-referential relationship.
 
         The DB CHECK (ck_relationship_no_self_reference) also enforces this,
-        but the application-layer guard (E1.id != E2.id) prevents the attempt
-        from reaching the DB at all.
+        but the application-layer guard (parent.id != child.id) prevents the
+        attempt from reaching the DB at all.
         """
         inv, evd = await _setup(session)
 
         # One event that appears in both parent and child candidate sets
-        e = _make_event(inv.id, evd.id, process_id="100", parent_process_id="100")
+        e = _make_event(inv.id, evd.id, process_id="100", parent_process_id="100",
+                        source_host="laptop-07")
         session.add(e)
         await session.flush()
 
@@ -476,8 +509,8 @@ class TestIdempotency:
         """
         inv, evd = await _setup(session)
 
-        parent = _make_event(inv.id, evd.id, process_id="7777")
-        child = _make_event(inv.id, evd.id, parent_process_id="7777")
+        parent = _make_event(inv.id, evd.id, process_id="7777", source_host="laptop-07")
+        child = _make_event(inv.id, evd.id, parent_process_id="7777", source_host="laptop-07")
         session.add_all([parent, child])
         await session.flush()
 
@@ -519,8 +552,8 @@ class TestIdempotency:
         """
         inv, evd = await _setup(session)
 
-        parent = _make_event(inv.id, evd.id, process_id="8888")
-        child = _make_event(inv.id, evd.id, parent_process_id="8888")
+        parent = _make_event(inv.id, evd.id, process_id="8888", source_host="laptop-07")
+        child = _make_event(inv.id, evd.id, parent_process_id="8888", source_host="laptop-07")
         session.add_all([parent, child])
         await session.flush()
 
@@ -570,8 +603,9 @@ class TestBoundaryNegative:
 
         e1 = _make_event(
             inv.id, evd.id,
-            process_id=None,   # no PID
+            process_id=None,
             parent_process_id=None,
+            source_host="laptop-07",
         )
         e1.process_name = "powershell.exe"
 
@@ -579,6 +613,7 @@ class TestBoundaryNegative:
             inv.id, evd.id,
             process_id=None,
             parent_process_id=None,
+            source_host="laptop-07",
         )
         e2.parent_process_name = "powershell.exe"
 
@@ -609,7 +644,7 @@ class TestBoundaryNegative:
         """A single event with a process_id but no child produces zero relationships."""
         inv, evd = await _setup(session)
 
-        e = _make_event(inv.id, evd.id, process_id="300")
+        e = _make_event(inv.id, evd.id, process_id="300", source_host="laptop-07")
         session.add(e)
         await session.flush()
 
@@ -623,11 +658,14 @@ class TestBoundaryNegative:
         """
         PID matching is exact string equality.  Integer 4812 and hex "0x12CC"
         represent the same numeric value but must NOT match.
+
+        Both events have source_host so the test isolates PID string equality.
         """
         inv, evd = await _setup(session)
 
-        parent = _make_event(inv.id, evd.id, process_id="4812")
-        child = _make_event(inv.id, evd.id, parent_process_id="0x12CC")
+        parent = _make_event(inv.id, evd.id, process_id="4812", source_host="laptop-07")
+        child = _make_event(inv.id, evd.id, parent_process_id="0x12CC",
+                            source_host="laptop-07")
         session.add_all([parent, child])
         await session.flush()
 
@@ -641,8 +679,9 @@ class TestBoundaryNegative:
         """Verify every field of the created Relationship row is correct."""
         inv, evd = await _setup(session)
 
-        parent = _make_event(inv.id, evd.id, process_id="1111")
-        child = _make_event(inv.id, evd.id, parent_process_id="1111")
+        parent = _make_event(inv.id, evd.id, process_id="1111", source_host="laptop-07")
+        child = _make_event(inv.id, evd.id, parent_process_id="1111",
+                            source_host="laptop-07")
         session.add_all([parent, child])
         await session.flush()
 
@@ -666,3 +705,174 @@ class TestBoundaryNegative:
         assert rel.target_entity_id is None
         assert rel.explanation != ""
         assert rel.id is not None
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Group 8: Host-aware matching (Phase 4B)
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+class TestHostAwareMatching:
+    @pytest.mark.anyio
+    async def test_same_host_matching_pid_creates_relationship(
+        self, session: AsyncSession
+    ):
+        """Same host + matching PID => relationship created."""
+        inv, evd = await _setup(session)
+
+        parent = _make_event(inv.id, evd.id, process_id="5000", source_host="server-01")
+        child = _make_event(inv.id, evd.id, parent_process_id="5000",
+                            source_host="server-01")
+        session.add_all([parent, child])
+        await session.flush()
+
+        result = await correlate_process_parent_child(
+            session=session, investigation_id=inv.id
+        )
+
+        assert result.relationships_created == 1
+
+    @pytest.mark.anyio
+    async def test_different_host_same_pid_no_relationship(self, session: AsyncSession):
+        """
+        Different host + matching PID => no relationship.
+
+        This is the primary Phase 4B hardening: cross-host PID matches must
+        not produce SPAWNED relationships.
+        """
+        inv, evd = await _setup(session)
+
+        parent = _make_event(inv.id, evd.id, process_id="1000", source_host="host-a")
+        child = _make_event(inv.id, evd.id, parent_process_id="1000",
+                            source_host="host-b")
+        session.add_all([parent, child])
+        await session.flush()
+
+        result = await correlate_process_parent_child(
+            session=session, investigation_id=inv.id
+        )
+
+        assert result.relationships_created == 0
+        rows = (
+            await session.execute(
+                select(Relationship).where(Relationship.investigation_id == inv.id)
+            )
+        ).scalars().all()
+        assert len(rows) == 0
+
+    @pytest.mark.anyio
+    async def test_parent_missing_host_no_relationship(self, session: AsyncSession):
+        """
+        Parent event without source_host + child with host => no relationship.
+
+        Events without a host value are excluded.  There is no fallback to
+        PID-only matching.
+        """
+        inv, evd = await _setup(session)
+
+        parent = _make_event(inv.id, evd.id, process_id="2000", source_host=None)
+        child = _make_event(inv.id, evd.id, parent_process_id="2000",
+                            source_host="laptop-07")
+        session.add_all([parent, child])
+        await session.flush()
+
+        result = await correlate_process_parent_child(
+            session=session, investigation_id=inv.id
+        )
+
+        assert result.relationships_created == 0
+
+    @pytest.mark.anyio
+    async def test_child_missing_host_no_relationship(self, session: AsyncSession):
+        """
+        Parent event with host + child without source_host => no relationship.
+
+        Events without a host value are excluded.
+        """
+        inv, evd = await _setup(session)
+
+        parent = _make_event(inv.id, evd.id, process_id="3000", source_host="laptop-07")
+        child = _make_event(inv.id, evd.id, parent_process_id="3000", source_host=None)
+        session.add_all([parent, child])
+        await session.flush()
+
+        result = await correlate_process_parent_child(
+            session=session, investigation_id=inv.id
+        )
+
+        assert result.relationships_created == 0
+
+    @pytest.mark.anyio
+    async def test_both_missing_host_no_relationship(self, session: AsyncSession):
+        """
+        Both events without source_host + matching PID => no relationship.
+
+        There is no fallback to PID-only matching.
+        """
+        inv, evd = await _setup(session)
+
+        parent = _make_event(inv.id, evd.id, process_id="4000", source_host=None)
+        child = _make_event(inv.id, evd.id, parent_process_id="4000", source_host=None)
+        session.add_all([parent, child])
+        await session.flush()
+
+        result = await correlate_process_parent_child(
+            session=session, investigation_id=inv.id
+        )
+
+        assert result.relationships_created == 0
+
+    @pytest.mark.anyio
+    async def test_explanation_contains_host(self, session: AsyncSession):
+        """
+        Explanation string must reference the matched host value alongside the
+        matched PID.
+        """
+        inv, evd = await _setup(session)
+
+        parent = _make_event(inv.id, evd.id, process_id="6000",
+                             source_host="endpoint-99")
+        child = _make_event(inv.id, evd.id, parent_process_id="6000",
+                            source_host="endpoint-99")
+        session.add_all([parent, child])
+        await session.flush()
+
+        await correlate_process_parent_child(
+            session=session, investigation_id=inv.id
+        )
+
+        rel = (
+            await session.execute(
+                select(Relationship).where(Relationship.investigation_id == inv.id)
+            )
+        ).scalar_one()
+
+        assert "endpoint-99" in rel.explanation
+        assert "6000" in rel.explanation
+        assert str(parent.id) in rel.explanation
+        assert str(child.id) in rel.explanation
+
+    @pytest.mark.anyio
+    async def test_fqdn_vs_short_hostname_no_relationship(self, session: AsyncSession):
+        """
+        "laptop-07" vs "laptop-07.corp.example.com" stored as-is => no match.
+
+        Phase 3B does not resolve FQDN vs short hostname.  The correlation
+        layer operates on stored values with exact string equality.  These
+        two stored values are distinct and must correctly not produce a
+        relationship.
+        """
+        inv, evd = await _setup(session)
+
+        parent = _make_event(inv.id, evd.id, process_id="7000",
+                             source_host="laptop-07")
+        child = _make_event(inv.id, evd.id, parent_process_id="7000",
+                            source_host="laptop-07.corp.example.com")
+        session.add_all([parent, child])
+        await session.flush()
+
+        result = await correlate_process_parent_child(
+            session=session, investigation_id=inv.id
+        )
+
+        assert result.relationships_created == 0
