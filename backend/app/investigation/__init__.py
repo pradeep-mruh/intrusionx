@@ -1,19 +1,30 @@
 """
-Investigation module.
+Investigation module — Phase 6A.
 
-Responsible for investigator-facing operations on the reconstructed attack
-graph and its hypotheses.
+Phase 6A public API
+-------------------
+confirm_relationship  — accept a SYSTEM_PROPOSED relationship.
+reject_relationship   — reject a SYSTEM_PROPOSED or ANALYST_CONFIRMED
+                        relationship.
 
-Future responsibilities:
-- Confirm a relationship (investigator validates that it is real).
-- Reject a relationship (investigator marks it as a false positive).
-- Connect two events manually with an investigator-supplied explanation.
-- Disconnect a relationship that was created automatically.
-- Record every analyst action with: analyst_id, timestamp, action_type,
-  target (event or relationship), and a free-text justification.
-- Expose the current investigation state as a read-only snapshot for UI
-  rendering.
+Both functions update Relationship.status and Relationship.status_changed_at,
+append an immutable AnalystAction audit record, and flush within the
+caller-owned transaction.
 
 Every analyst action is an immutable audit record.  Actions are appended,
 never overwritten.
 """
+
+from app.investigation.service import (
+    InvalidRelationshipTransitionError,
+    RelationshipNotFoundError,
+    confirm_relationship,
+    reject_relationship,
+)
+
+__all__ = [
+    "confirm_relationship",
+    "reject_relationship",
+    "RelationshipNotFoundError",
+    "InvalidRelationshipTransitionError",
+]
