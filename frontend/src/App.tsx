@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { fetchHealth } from './api/client'
 import type { HealthResponse } from './api/client'
+import { InvestigationWorkspace } from './pages/InvestigationWorkspace'
 import './App.css'
 
 type HealthStatus = 'loading' | 'healthy' | 'degraded' | 'unreachable'
@@ -35,6 +36,9 @@ export default function App() {
   const [healthStatus, setHealthStatus] = useState<HealthStatus>('loading')
   const [healthData, setHealthData] = useState<HealthResponse | null>(null)
 
+  const searchParams = new URLSearchParams(window.location.search);
+  const investigationId = searchParams.get('investigation');
+
   useEffect(() => {
     async function checkHealth() {
       const data = await fetchHealth()
@@ -52,6 +56,10 @@ export default function App() {
 
     checkHealth()
   }, [])
+
+  if (investigationId) {
+    return <InvestigationWorkspace investigationId={investigationId} />;
+  }
 
   return (
     <div className="app-layout">

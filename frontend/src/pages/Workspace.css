@@ -1,0 +1,436 @@
+.ws-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+}
+
+.ws-sidebar {
+  width: 260px;
+  background-color: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.ws-brand {
+  padding: 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ws-brand-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ws-brand-icon {
+  color: var(--color-accent);
+}
+
+.ws-brand-subtitle {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+
+.ws-nav {
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ws-nav-link {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.ws-nav-link:hover {
+  background-color: rgba(88, 166, 255, 0.1);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.ws-main {
+  flex: 1;
+  margin-left: 260px;
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.ws-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ws-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+
+.ws-meta {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ws-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.ws-badge.open {
+  background-color: rgba(63, 185, 80, 0.15);
+  color: var(--color-success);
+  border: 1px solid rgba(63, 185, 80, 0.3);
+}
+
+.ws-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.ws-btn {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ws-btn:hover {
+  background-color: var(--color-border);
+}
+
+.ws-btn-primary {
+  background-color: var(--color-accent);
+  color: #000;
+  border: 1px solid var(--color-accent);
+}
+
+.ws-btn-primary:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.ws-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  scroll-margin-top: 40px;
+}
+
+.ws-section-header {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.ws-section-desc {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: 16px;
+}
+
+/* Metric Cards */
+.ws-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.ws-metric-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ws-metric-val {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.ws-metric-label {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Timeline / Event Cards */
+.ws-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.ws-event-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--color-border);
+  padding: 12px 0;
+}
+
+.ws-event-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.ws-event-time {
+  color: var(--color-text-secondary);
+  width: 140px;
+  flex-shrink: 0;
+  font-family: monospace;
+}
+
+.ws-event-type {
+  font-weight: 600;
+  color: var(--color-accent);
+  width: 160px;
+  flex-shrink: 0;
+}
+
+.ws-event-details {
+  flex: 1;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ws-event-detail {
+  display: flex;
+  gap: 6px;
+}
+
+.ws-detail-label {
+  color: var(--color-text-secondary);
+}
+
+.ws-detail-value {
+  color: var(--color-text-primary);
+  font-family: monospace;
+}
+
+/* Reconstruction Flow */
+.ws-recon-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.ws-recon-node {
+  background-color: #1f242d;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 12px 24px;
+  font-family: monospace;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  min-width: 240px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.ws-recon-edge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.ws-recon-line {
+  width: 2px;
+  height: 24px;
+  background-color: var(--color-border);
+}
+
+.ws-recon-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg);
+  padding: 2px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  text-transform: uppercase;
+}
+
+.ws-recon-label.proposed {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.ws-recon-label.confirmed {
+  color: var(--color-success);
+  border-color: var(--color-success);
+}
+.ws-recon-label.rejected {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+  text-decoration: line-through;
+}
+
+.ws-recon-arrow {
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid var(--color-border);
+}
+
+.ws-warning {
+  background-color: rgba(210, 153, 34, 0.1);
+  border: 1px solid var(--color-warning);
+  color: var(--color-warning);
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Validation */
+.ws-val-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+.ws-val-card:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.ws-val-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ws-val-title {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.ws-val-status {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.ws-val-status.proposed {
+  background-color: rgba(88, 166, 255, 0.1);
+  color: var(--color-accent);
+  border: 1px solid rgba(88, 166, 255, 0.3);
+}
+
+.ws-val-status.confirmed {
+  background-color: rgba(63, 185, 80, 0.1);
+  color: var(--color-success);
+  border: 1px solid rgba(63, 185, 80, 0.3);
+}
+
+.ws-val-status.rejected {
+  background-color: rgba(248, 81, 73, 0.1);
+  color: var(--color-danger);
+  border: 1px solid rgba(248, 81, 73, 0.3);
+}
+
+.ws-val-desc {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.ws-val-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Empty states */
+.ws-empty {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-style: italic;
+  padding: 16px 0;
+}
+
+/* Audit */
+.ws-audit-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 13px;
+}
+.ws-audit-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.ws-audit-meta {
+  display: flex;
+  gap: 12px;
+  color: var(--color-text-secondary);
+}
+.ws-audit-action {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+.ws-audit-subdued {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}

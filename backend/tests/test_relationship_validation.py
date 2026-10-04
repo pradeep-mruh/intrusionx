@@ -135,7 +135,7 @@ def _make_investigation() -> Investigation:
 def _make_evidence(investigation_id: uuid.UUID) -> Evidence:
     # Use a per-call random suffix so concurrent test setups do not collide
     # on the unique (investigation_id, content_hash) constraint.
-    content = b'{"event":"test"}' + uuid.uuid4().bytes
+    content = b'{"event":"test"}' + uuid.uuid4().hex.encode("utf-8")
     return Evidence(
         id=uuid.uuid4(),
         investigation_id=investigation_id,

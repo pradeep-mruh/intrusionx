@@ -26,7 +26,63 @@ export async function fetchHealth(): Promise<HealthResponse | null> {
       return null
     }
     return (await response.json()) as HealthResponse
-  } catch {
+} catch {
     return null
   }
+}
+
+import type { WorkspaceData } from '../types/workspace';
+
+const INVESTIGATIONS_API_BASE = `${API_BASE_URL}/api/v1/investigations`;
+
+export const DEMO_ANALYST_ID = '00000000-0000-0000-0000-000000000001';
+
+export async function fetchWorkspace(investigationId: string): Promise<WorkspaceData> {
+  const res = await fetch(`${INVESTIGATIONS_API_BASE}/${investigationId}/workspace`);
+  if (!res.ok) throw new Error('Failed to fetch workspace');
+  return res.json();
+}
+
+export async function correlateInvestigation(investigationId: string) {
+  const res = await fetch(`${INVESTIGATIONS_API_BASE}/${investigationId}/correlate`, {
+    method: 'POST',
+  });
+  if (!res.ok) throw new Error('Failed to correlate');
+  return res.json();
+}
+
+export async function reconstructInvestigation(investigationId: string) {
+  const res = await fetch(`${INVESTIGATIONS_API_BASE}/${investigationId}/reconstruct`, {
+    method: 'POST',
+  });
+  if (!res.ok) throw new Error('Failed to reconstruct');
+  return res.json();
+}
+
+export async function confirmRelationship(
+  investigationId: string,
+  relationshipId: string,
+  reason: string = 'Analyst confirmed via workspace'
+) {
+  const res = await fetch(`${INVESTIGATIONS_API_BASE}/${investigationId}/relationships/${relationshipId}/confirm`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ analyst_id: DEMO_ANALYST_ID, reason }),
+  });
+  if (!res.ok) throw new Error('Failed to confirm relationship');
+  return res.json();
+}
+
+export async function rejectRelationship(
+  investigationId: string,
+  relationshipId: string,
+  reason: string = 'Analyst rejected via workspace'
+) {
+  const res = await fetch(`${INVESTIGATIONS_API_BASE}/${investigationId}/relationships/${relationshipId}/reject`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ analyst_id: DEMO_ANALYST_ID, reason }),
+  });
+  if (!res.ok) throw new Error('Failed to reject relationship');
+  return res.json();
 }
