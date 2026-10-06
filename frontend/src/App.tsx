@@ -35,9 +35,23 @@ function statusLabel(status: HealthStatus): string {
 export default function App() {
   const [healthStatus, setHealthStatus] = useState<HealthStatus>('loading')
   const [healthData, setHealthData] = useState<HealthResponse | null>(null)
+  const [inputId, setInputId] = useState('')
 
   const searchParams = new URLSearchParams(window.location.search);
   const investigationId = searchParams.get('investigation');
+
+  const handleOpenWorkspace = () => {
+    const trimmedId = inputId.trim()
+    if (trimmedId) {
+      window.location.href = `/?investigation=${encodeURIComponent(trimmedId)}`
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleOpenWorkspace()
+    }
+  }
 
   useEffect(() => {
     async function checkHealth() {
@@ -74,6 +88,26 @@ export default function App() {
       </header>
 
       <main className="app-main">
+        <div style={{ backgroundColor: 'var(--color-bg-secondary, #1a1a1a)', border: '1px solid var(--color-border, #333)', padding: '24px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '600px', margin: '0 auto 32px' }}>
+          <h2 style={{ fontSize: '16px', margin: 0, color: 'var(--color-text, #fff)' }}>Open Investigation</h2>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <input
+              type="text"
+              value={inputId}
+              onChange={(e) => setInputId(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Enter investigation ID"
+              style={{ flex: 1, padding: '10px 14px', borderRadius: '4px', border: '1px solid var(--color-border, #333)', backgroundColor: 'var(--color-bg, #000)', color: 'var(--color-text, #fff)', fontSize: '14px', outline: 'none' }}
+            />
+            <button
+              onClick={handleOpenWorkspace}
+              disabled={!inputId.trim()}
+              style={{ opacity: inputId.trim() ? 1 : 0.5, cursor: inputId.trim() ? 'pointer' : 'not-allowed', padding: '10px 16px', borderRadius: '4px', backgroundColor: 'var(--color-primary, #007bff)', color: '#fff', border: 'none', fontWeight: 500, fontSize: '14px' }}
+            >
+              Open Workspace
+            </button>
+          </div>
+        </div>
         <section className="hero">
           <h1 className="hero-title">Evidence-Driven Attack Reconstruction</h1>
           <p className="hero-subtitle">

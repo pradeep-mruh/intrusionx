@@ -55,20 +55,37 @@ export const InvestigationWorkspace: React.FC<{ investigationId: string }> = ({ 
     }
   };
 
-  if (loading && !data) return <div className="ws-layout" style={{ padding: '48px' }}>Loading Workspace...</div>;
-  if (error) return <div className="ws-layout" style={{ padding: '48px', color: 'var(--color-danger)' }}>Error: {error}</div>;
+  if (loading && !data) {
+    return (
+      <div className="ws-layout" style={{ justifyContent: 'center', alignItems: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '3px solid var(--color-border)', borderTopColor: 'var(--color-accent)', animation: 'spin 1s linear infinite' }} />
+          <div style={{ color: 'var(--color-text-secondary)' }}>Loading Investigation Workspace...</div>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="ws-layout" style={{ justifyContent: 'center', alignItems: 'center' }}>
+        <div className="ws-card" style={{ maxWidth: '400px', textAlign: 'center', borderColor: 'var(--color-danger)' }}>
+          <h2 style={{ color: 'var(--color-danger)', marginBottom: '12px' }}>Unable to Load Investigation</h2>
+          <p style={{ color: 'var(--color-text-secondary)', marginBottom: '24px' }}>{error}</p>
+          <button onClick={() => window.location.href = '/'} className="ws-btn">Return Home</button>
+        </div>
+      </div>
+    );
+  }
   if (!data) return null;
 
   return (
     <div className="ws-layout">
       {/* Sidebar */}
       <aside className="ws-sidebar">
-        <div className="ws-brand">
-          <div className="ws-brand-title">
-            <span className="ws-brand-icon">⬡</span>
-            <span>IntrusionX</span>
-          </div>
-          <div className="ws-brand-subtitle">Investigation Workspace</div>
+        <div className="ws-brand" style={{ padding: '24px 20px' }}>
+          <img src="/intrusionx-logo.png" alt="IntrusionX Logo" style={{ width: '100%', height: 'auto', objectFit: 'contain' }} />
+          <div className="ws-brand-subtitle" style={{ textAlign: 'center', marginTop: '12px' }}>Demo Workspace</div>
         </div>
         <nav className="ws-nav">
           <a href="#overview" className="ws-nav-link">Overview</a>
