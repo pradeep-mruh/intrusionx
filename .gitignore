@@ -31,3 +31,6 @@ dist/
 # Logs and temporary files
 *.log
 *.tmp
+
+# Demo seed cache (investigation ID stored by seed_demo.py for idempotent re-runs)
+.demo_id
