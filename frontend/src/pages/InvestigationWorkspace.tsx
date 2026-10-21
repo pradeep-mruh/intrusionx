@@ -83,14 +83,15 @@ export const InvestigationWorkspace: React.FC<{ investigationId: string }> = ({ 
     <div className="ws-layout">
       {/* Sidebar */}
       <aside className="ws-sidebar">
-        <div className="ws-brand" style={{ padding: '24px 20px' }}>
-          <img src="/intrusionx-logo.png" alt="IntrusionX Logo" style={{ width: '100%', height: 'auto', objectFit: 'contain' }} />
-          <div className="ws-brand-subtitle" style={{ textAlign: 'center', marginTop: '12px' }}>Demo Workspace</div>
+        <div className="ws-brand">
+          <img src="/intrusionx-logo.png" alt="IntrusionX Logo" />
+          <div className="ws-brand-subtitle">Demo Workspace</div>
         </div>
         <nav className="ws-nav">
           <a href="#overview" className="ws-nav-link">Overview</a>
           <a href="#evidence" className="ws-nav-link">Evidence</a>
           <a href="#events" className="ws-nav-link">Events</a>
+          <a href="#unresolved" className="ws-nav-link">Unresolved</a>
           <a href="#reconstruction" className="ws-nav-link">Reconstruction</a>
           <a href="#validation" className="ws-nav-link">Validation</a>
           <a href="#audit" className="ws-nav-link">Audit Trail</a>
@@ -131,7 +132,9 @@ export const InvestigationWorkspace: React.FC<{ investigationId: string }> = ({ 
             <div className="ws-metric-label">Reconstruction</div>
           </div>
           <div className="ws-metric-card">
-            <div className="ws-metric-val">{data.unresolved_event_ids?.length || 0}</div>
+            <div className="ws-metric-val" style={{ color: (data.unresolved_event_ids?.length || 0) > 0 ? 'var(--color-warning)' : 'var(--color-text-primary)' }}>
+              {data.unresolved_event_ids?.length || 0}
+            </div>
             <div className="ws-metric-label">Unresolved</div>
           </div>
         </div>
@@ -159,7 +162,7 @@ export const InvestigationWorkspace: React.FC<{ investigationId: string }> = ({ 
         </section>
 
         {/* Unresolved Events */}
-        <section className="ws-section">
+        <section id="unresolved" className="ws-section">
           <div>
             <h2 className="ws-section-header">Unresolved Events</h2>
             <div className="ws-section-desc">Observed event — no deterministic relationship established.</div>

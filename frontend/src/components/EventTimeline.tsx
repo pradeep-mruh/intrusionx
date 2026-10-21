@@ -16,7 +16,14 @@ export const EventTimeline: React.FC<{ events: Event[] }> = ({ events }) => {
       {sortedEvents.map(event => (
         <div key={event.id} className="ws-event-row">
           <div className="ws-event-time">
-            {new Date(event.occurred_at).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' })}
+            {new Date(event.occurred_at).toLocaleString([], {
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hour12: false,
+            })}
           </div>
           <div className="ws-event-type">{event.event_type}</div>
           <div className="ws-event-details">

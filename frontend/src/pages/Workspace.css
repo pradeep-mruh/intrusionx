@@ -2,6 +2,8 @@ html {
   scroll-behavior: smooth;
 }
 
+/* ── Layout ──────────────────────────────────────────── */
+
 .ws-layout {
   display: flex;
   min-height: 100vh;
@@ -9,8 +11,10 @@ html {
   color: var(--color-text-primary);
 }
 
+/* ── Sidebar ─────────────────────────────────────────── */
+
 .ws-sidebar {
-  width: 260px;
+  width: 240px;
   background-color: var(--color-surface);
   border-right: 1px solid var(--color-border);
   display: flex;
@@ -19,15 +23,24 @@ html {
   top: 0;
   bottom: 0;
   left: 0;
+  overflow-y: auto;
 }
 
 .ws-brand {
-  padding: 24px;
+  padding: 20px 16px 16px;
   border-bottom: 1px solid var(--color-border);
 }
 
+.ws-brand img {
+  display: block;
+  width: 100%;
+  max-height: 52px;
+  object-fit: contain;
+  object-position: left center;
+}
+
 .ws-brand-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--color-text-primary);
   display: flex;
@@ -40,163 +53,202 @@ html {
 }
 
 .ws-brand-subtitle {
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--color-text-secondary);
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 .ws-nav {
-  padding: 16px 12px;
+  padding: 12px 8px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+  flex: 1;
 }
 
 .ws-nav-link {
+  display: flex;
+  align-items: center;
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 13px;
+  font-weight: 500;
   color: var(--color-text-secondary);
   text-decoration: none;
-  transition: all 0.2s;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
 }
 
 .ws-nav-link:hover {
-  background-color: rgba(88, 166, 255, 0.1);
+  background-color: rgba(88, 166, 255, 0.08);
   color: var(--color-text-primary);
   text-decoration: none;
 }
 
+/* ── Main Content ────────────────────────────────────── */
+
 .ws-main {
   flex: 1;
-  margin-left: 260px;
-  padding: 48px;
+  margin-left: 240px;
+  padding: 40px 48px;
   display: flex;
   flex-direction: column;
-  gap: 48px;
+  gap: 40px;
+  max-width: calc(100vw - 240px);
 }
+
+/* ── Header ──────────────────────────────────────────── */
 
 .ws-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding-bottom: 24px;
+  padding-bottom: 20px;
   border-bottom: 1px solid var(--color-border);
 }
 
 .ws-title {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
   color: var(--color-text-primary);
+  letter-spacing: -0.02em;
   margin-bottom: 8px;
+  line-height: 1.3;
 }
 
 .ws-meta {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--color-text-secondary);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  font-family: monospace;
 }
 
 .ws-badge {
   padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: inherit;
 }
 
 .ws-badge.open {
-  background-color: rgba(63, 185, 80, 0.15);
+  background-color: rgba(63, 185, 80, 0.12);
   color: var(--color-success);
-  border: 1px solid rgba(63, 185, 80, 0.3);
+  border: 1px solid rgba(63, 185, 80, 0.25);
 }
 
 .ws-actions {
   display: flex;
-  gap: 12px;
+  gap: 8px;
 }
+
+/* ── Buttons ─────────────────────────────────────────── */
 
 .ws-btn {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   color: var(--color-text-primary);
-  padding: 6px 16px;
+  padding: 6px 14px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
 }
 
 .ws-btn:hover {
-  background-color: var(--color-border);
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .ws-btn-primary {
-  background-color: var(--color-accent);
-  color: #000;
-  border: 1px solid var(--color-accent);
+  background-color: rgba(88, 166, 255, 0.15);
+  color: var(--color-accent);
+  border: 1px solid rgba(88, 166, 255, 0.35);
 }
 
 .ws-btn-primary:hover {
-  background-color: var(--color-accent-hover);
+  background-color: rgba(88, 166, 255, 0.25);
+  border-color: var(--color-accent);
 }
+
+/* ── Section ─────────────────────────────────────────── */
 
 .ws-section {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  scroll-margin-top: 40px;
+  scroll-margin-top: 32px;
 }
 
 .ws-section-header {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: var(--color-text-primary);
+  letter-spacing: -0.01em;
   border-bottom: 1px solid var(--color-border);
-  padding-bottom: 8px;
-  margin-bottom: 8px;
+  padding-bottom: 10px;
+  margin-bottom: 4px;
 }
 
 .ws-section-desc {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--color-text-secondary);
-  margin-bottom: 16px;
+  margin-bottom: 4px;
+  line-height: 1.5;
 }
 
-/* Metric Cards */
+/* ── Metric Cards ────────────────────────────────────── */
+
 .ws-metrics {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 
 .ws-metric-card {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
+  border-top: 2px solid var(--color-border);
   border-radius: 8px;
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  transition: border-color 0.15s ease;
+}
+
+.ws-metric-card:hover {
+  border-color: rgba(88, 166, 255, 0.4);
+  border-top-color: var(--color-accent);
 }
 
 .ws-metric-val {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--color-text-primary);
+  letter-spacing: -0.03em;
+  line-height: 1;
 }
 
 .ws-metric-label {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--color-text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.07em;
+  font-weight: 500;
 }
 
-/* Timeline / Event Cards */
+/* ── Card ────────────────────────────────────────────── */
+
 .ws-card {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -204,151 +256,193 @@ html {
   padding: 16px;
 }
 
+/* ── Event Timeline ──────────────────────────────────── */
+
 .ws-event-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  font-size: 13px;
-  border-bottom: 1px solid var(--color-border);
-  padding: 12px 0;
+  display: grid;
+  grid-template-columns: 160px 180px 1fr;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(48, 54, 61, 0.6);
+  padding: 10px 8px;
+  border-radius: 4px;
+  transition: background-color 0.1s ease;
+}
+
+.ws-event-row:hover {
+  background-color: rgba(255, 255, 255, 0.025);
 }
 
 .ws-event-row:last-child {
   border-bottom: none;
-  padding-bottom: 0;
+  padding-bottom: 4px;
 }
 
 .ws-event-time {
   color: var(--color-text-secondary);
-  width: 140px;
-  flex-shrink: 0;
-  font-family: monospace;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .ws-event-type {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 11px;
   font-weight: 600;
   color: var(--color-accent);
-  width: 160px;
-  flex-shrink: 0;
+  background-color: rgba(88, 166, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  width: fit-content;
+  white-space: nowrap;
 }
 
 .ws-event-details {
   flex: 1;
   display: flex;
-  gap: 16px;
+  gap: 14px;
   flex-wrap: wrap;
+  align-items: baseline;
 }
 
 .ws-event-detail {
   display: flex;
-  gap: 6px;
+  gap: 5px;
+  align-items: baseline;
 }
 
 .ws-detail-label {
   color: var(--color-text-secondary);
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .ws-detail-value {
   color: var(--color-text-primary);
-  font-family: monospace;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  word-break: break-all;
 }
 
-/* Reconstruction Flow */
+/* ── Reconstruction Flow ─────────────────────────────── */
+
 .ws-recon-flow {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 32px;
+  gap: 0;
+  padding: 32px 24px;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 8px;
 }
 
 .ws-recon-node {
-  background-color: #1f242d;
+  background-color: #0d1117;
   border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
   border-radius: 6px;
-  padding: 12px 24px;
-  font-family: monospace;
+  padding: 12px 28px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 14px;
+  font-weight: 600;
   color: var(--color-text-primary);
-  min-width: 240px;
+  min-width: 220px;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  letter-spacing: -0.01em;
 }
 
 .ws-recon-edge {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 0;
+  padding: 4px 0;
 }
 
 .ws-recon-line {
   width: 2px;
-  height: 24px;
+  height: 18px;
   background-color: var(--color-border);
 }
 
 .ws-recon-label {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Fira Code', monospace;
   color: var(--color-text-secondary);
   background-color: var(--color-bg);
-  padding: 2px 8px;
+  padding: 3px 10px;
   border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: 10px;
   text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 2px 0;
 }
 
 .ws-recon-label.proposed {
   color: var(--color-accent);
-  border-color: var(--color-accent);
+  border-color: rgba(88, 166, 255, 0.35);
+  background-color: rgba(88, 166, 255, 0.06);
 }
+
 .ws-recon-label.confirmed {
   color: var(--color-success);
-  border-color: var(--color-success);
+  border-color: rgba(63, 185, 80, 0.35);
+  background-color: rgba(63, 185, 80, 0.06);
 }
+
 .ws-recon-label.rejected {
   color: var(--color-danger);
-  border-color: var(--color-danger);
+  border-color: rgba(248, 81, 73, 0.35);
+  background-color: rgba(248, 81, 73, 0.06);
   text-decoration: line-through;
 }
 
 .ws-recon-arrow {
   width: 0;
   height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-top: 8px solid var(--color-border);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 7px solid var(--color-border);
+  margin-top: 2px;
 }
+
+/* ── Warning Banner ──────────────────────────────────── */
 
 .ws-warning {
-  background-color: rgba(210, 153, 34, 0.1);
-  border: 1px solid var(--color-warning);
+  background-color: rgba(210, 153, 34, 0.08);
+  border: 1px solid rgba(210, 153, 34, 0.35);
+  border-left: 3px solid var(--color-warning);
   color: var(--color-warning);
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-radius: 6px;
-  font-size: 13px;
-  margin-bottom: 16px;
+  font-size: 12px;
+  margin-bottom: 12px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
+  line-height: 1.5;
 }
 
-/* Validation */
+/* ── Validation ──────────────────────────────────────── */
+
 .ws-val-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
+  gap: 10px;
+  padding: 14px 0;
   border-bottom: 1px solid var(--color-border);
 }
+
+.ws-val-card:first-child {
+  padding-top: 4px;
+}
+
 .ws-val-card:last-child {
   border-bottom: none;
-  margin-bottom: 0;
   padding-bottom: 0;
 }
 
@@ -359,19 +453,23 @@ html {
 }
 
 .ws-val-title {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text-primary);
-  font-size: 14px;
+  font-size: 13px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
 }
 
 .ws-val-status {
-  font-size: 11px;
+  font-size: 10px;
   padding: 2px 8px;
-  border-radius: 12px;
-  font-weight: 600;
+  border-radius: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: inherit;
 }
 
 .ws-val-status.proposed {
@@ -387,13 +485,35 @@ html {
 }
 
 .ws-val-status.rejected {
-  background-color: rgba(248, 81, 73, 0.1);
+  background-color: rgba(248, 81, 73, 0.08);
   color: var(--color-danger);
   border: 1px solid rgba(248, 81, 73, 0.3);
 }
 
+.ws-val-path {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  flex-wrap: wrap;
+}
+
+.ws-val-path-node {
+  color: var(--color-text-primary);
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+
+.ws-val-path-arrow {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
 .ws-val-desc {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--color-text-secondary);
   line-height: 1.5;
 }
@@ -401,10 +521,28 @@ html {
 .ws-val-actions {
   display: flex;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
-/* Empty states */
+/* ── Unresolved Events ───────────────────────────────── */
+
+.ws-unresolved-item {
+  padding: 12px;
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid rgba(210, 153, 34, 0.5);
+  border-radius: 6px;
+}
+
+.ws-unresolved-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* ── Empty States ────────────────────────────────────── */
+
 .ws-empty {
   color: var(--color-text-secondary);
   font-size: 13px;
@@ -412,28 +550,70 @@ html {
   padding: 16px 0;
 }
 
-/* Audit */
+/* ── Audit Trail ─────────────────────────────────────── */
+
 .ws-audit-row {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--color-border);
-  font-size: 13px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(48, 54, 61, 0.6);
+  font-size: 12px;
 }
+
+.ws-audit-row:first-child {
+  padding-top: 4px;
+}
+
 .ws-audit-row:last-child {
   border-bottom: none;
   padding-bottom: 0;
 }
+
 .ws-audit-meta {
   display: flex;
-  gap: 12px;
-  color: var(--color-text-secondary);
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
+
 .ws-audit-action {
-  font-weight: 600;
-  color: var(--color-text-primary);
+  font-weight: 700;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 4px;
 }
+
+.ws-audit-action.confirm {
+  color: var(--color-success);
+  background-color: rgba(63, 185, 80, 0.1);
+  border: 1px solid rgba(63, 185, 80, 0.25);
+}
+
+.ws-audit-action.reject {
+  color: var(--color-danger);
+  background-color: rgba(248, 81, 73, 0.08);
+  border: 1px solid rgba(248, 81, 73, 0.25);
+}
+
+.ws-audit-action.default {
+  color: var(--color-text-secondary);
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-border);
+}
+
+.ws-audit-time {
+  color: var(--color-text-secondary);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 11px;
+}
+
+.ws-audit-target {
+  color: var(--color-text-primary);
+  font-size: 12px;
+}
+
 .ws-audit-subdued {
   color: var(--color-text-secondary);
   font-size: 11px;

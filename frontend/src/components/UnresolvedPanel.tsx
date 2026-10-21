@@ -14,37 +14,39 @@ export const UnresolvedPanel: React.FC<UnresolvedPanelProps> = ({ events, unreso
   }
 
   return (
-    <div className="ws-card">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {unresolvedEvents.map(e => (
-          <div key={e.id} style={{ padding: '12px', backgroundColor: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--color-border)', borderRadius: '6px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontWeight: 600, color: 'var(--color-accent)' }}>{e.event_type}</span>
-              <span className="ws-badge" style={{ backgroundColor: 'transparent', border: '1px solid var(--color-border)' }}>{e.event_category}</span>
-            </div>
-            <div className="ws-event-details">
-              {e.process_name && (
-                <div className="ws-event-detail">
-                  <span className="ws-detail-label">Process:</span>
-                  <span className="ws-detail-value">{e.process_name}</span>
-                </div>
-              )}
-              {e.source_user && (
-                <div className="ws-event-detail">
-                  <span className="ws-detail-label">User:</span>
-                  <span className="ws-detail-value">{e.source_user}</span>
-                </div>
-              )}
-              {e.destination_ip && (
-                <div className="ws-event-detail">
-                  <span className="ws-detail-label">Dest:</span>
-                  <span className="ws-detail-value">{e.destination_ip}:{e.destination_port}</span>
-                </div>
-              )}
-            </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {unresolvedEvents.map(e => (
+        <div key={e.id} className="ws-unresolved-item">
+          <div className="ws-unresolved-header">
+            <span style={{ fontWeight: 700, fontFamily: "'SF Mono', 'Fira Code', monospace", fontSize: '13px', color: 'var(--color-accent)' }}>
+              {e.event_type}
+            </span>
+            <span className="ws-badge" style={{ backgroundColor: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}>
+              {e.event_category}
+            </span>
           </div>
-        ))}
-      </div>
+          <div className="ws-event-details">
+            {e.process_name && (
+              <div className="ws-event-detail">
+                <span className="ws-detail-label">Process:</span>
+                <span className="ws-detail-value">{e.process_name}</span>
+              </div>
+            )}
+            {e.source_user && (
+              <div className="ws-event-detail">
+                <span className="ws-detail-label">User:</span>
+                <span className="ws-detail-value">{e.source_user}</span>
+              </div>
+            )}
+            {e.destination_ip && (
+              <div className="ws-event-detail">
+                <span className="ws-detail-label">Dest:</span>
+                <span className="ws-detail-value">{e.destination_ip}:{e.destination_port}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

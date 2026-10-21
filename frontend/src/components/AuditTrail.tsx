@@ -5,6 +5,13 @@ interface AuditTrailProps {
   actions: AnalystAction[];
 }
 
+function actionClass(actionType: string): string {
+  const t = actionType.toUpperCase();
+  if (t.includes('CONFIRM')) return 'confirm';
+  if (t.includes('REJECT')) return 'reject';
+  return 'default';
+}
+
 export const AuditTrail: React.FC<AuditTrailProps> = ({ actions }) => {
   if (actions.length === 0) {
     return <div className="ws-empty">No analyst actions recorded yet.</div>;
@@ -16,18 +23,29 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ actions }) => {
         {actions.map(action => (
           <div key={action.id} className="ws-audit-row">
             <div className="ws-audit-meta">
-              <span className="ws-audit-action">{action.action_type}</span>
-              <span>{new Date(action.acted_at).toLocaleString()}</span>
+              <span className={`ws-audit-action ${actionClass(action.action_type)}`}>
+                {action.action_type}
+              </span>
+              <span className="ws-audit-time">
+                {new Date(action.acted_at).toLocaleString([], {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                  hour12: false,
+                })}
+              </span>
             </div>
-            <div style={{ color: 'var(--color-text-primary)' }}>
-              Target: {action.target_object_type} ({action.target_object_id.split('-')[0]}...)
+            <div className="ws-audit-target">
+              {action.target_object_type} — {action.target_object_id.substring(0, 8)}…
             </div>
             {action.reason && (
-              <div style={{ fontStyle: 'italic', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+              <div style={{ fontStyle: 'italic', color: 'var(--color-text-secondary)', fontSize: '11px' }}>
                 "{action.reason}"
               </div>
             )}
-            <div className="ws-audit-subdued" style={{ marginTop: '4px' }}>
+            <div className="ws-audit-subdued">
               Analyst: {action.analyst_id}
             </div>
           </div>
